@@ -1,0 +1,43 @@
+//choose cdc uart output as zephyr console alias
+/ {
+	chosen {
+		zephyr,console = &cdc_acm_uart0;
+	};
+};
+//cdc acm uart 
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+&i2c1 {
+	//Temperaturea and humidity chip HS3003
+	hs3003: hs3003@44 {
+		compatible = "i2c-device";
+		label = "HS3003";
+		reg = <0x44>;
+		status = "okay";
+	};
+	//accelerometer and gyro chip BMI270
+	bmi270: bmi270@68 {
+		compatible = "bosch,bmi270";
+		label = "bmi270";
+		reg = <0x68>;
+		status = "okay";
+	};
+	bmm150:bmm150@10 {
+		compatible = "bosch,bmm150";
+		label = "bmm150";
+		reg = <0x10>;
+		status = "okay";
+	};
+};
+// &arduino_i2c {
+// 	status = "okay";
+
+// 	bmi270@68 {
+// 		compatible = "bosch,bmi270";
+// 		reg = <0x68>;
+// 	};
+// };
