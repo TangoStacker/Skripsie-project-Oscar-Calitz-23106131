@@ -46,6 +46,7 @@ static int temp_get(struct bt_mesh_sensor_srv *srv,
                     struct bt_mesh_msg_ctx *ctx,
                     struct bt_mesh_sensor_value *rsp)
                     {
+						//using environmental sensor format
                         int err;
                         struct sensor_value temperature;
                         /*
@@ -56,12 +57,11 @@ static int temp_get(struct bt_mesh_sensor_srv *srv,
 
                         */
                         //take measurement and place values into global variables
-                        hs3003_measurement();
                         //global variables are double convert them too int32 and put them into sensor_value struct
                         temperature.val1 = (int32_t)hs3003_temperature;
                         double fractional_part = (hs3003_temperature-(double)(temperature.val1))*1000000;
                         temperature.val2 = (int32_t)fractional_part;
-                        printk("val1 temp:%d \n val2 temp%d\n",temperature.val1,temperature.val2);
+                        // printk("val1 temp:%d \n val2 temp%d\n",temperature.val1,temperature.val2);
 
                         err = bt_mesh_sensor_value_from_sensor_value(
                             sensor->type->channels[0].format, &temperature, rsp);
@@ -71,6 +71,24 @@ static int temp_get(struct bt_mesh_sensor_srv *srv,
                         }
                         return 0;
                     }
+static int hum_get(struct bt_mesh_sensor_srv *srv,
+                    struct bt_mesh_sensor *sensor,
+                    struct bt_mesh_msg_ctx *ctx,
+                    struct bt_mesh_sensor_value *rsp)
+					{
+						//using percentage sensor format
+						int err;
+                        struct sensor_value humidity;
+						humidity.val1 = (int32_t)(hs3003_humidity+0.5f);//to round up and cast
+						humidity.val2 = 0;
+						err = bt_mesh_sensor_value_from_sensor_value(
+                            sensor->type->channels[0].format, &humidity, rsp);
+                        if (err && err != -ERANGE) {
+                            printk("Error encoding temperature sensor data (%d)\n", err);
+                            return err;
+                        }
+                        return 0;
+					}
 //------------------------------------------------------------------------------------------------------------------------
 //BT  sensor mesh
 //------- -------
@@ -91,14 +109,20 @@ static struct bt_mesh_sensor hs3003_temp =
 .get = temp_get,//in sensors section
 // .descriptor = &hs3003_temperature_description,
 };
+static struct bt_mesh_sensor hs3003_hum =
+{
+.type = &bt_mesh_sensor_format_percentage_8,
+.get = hum_get,
+};
 //array of mesh sensors for elemnt 0
 //array of sensors and sensor settings(not used here)
 static struct bt_mesh_sensor *const sensors[] =
 {
 &hs3003_temp,//temperature sensor for mesh server
+&hs3003_hum,
 };
 //sensor mesh initiation
-static struct bt_mesh_sensor_srv ambient_temperature = BT_MESH_SENSOR_SRV_INIT(sensors,ARRAY_SIZE(sensors));//initialises array of sensors
+static struct bt_mesh_sensor_srv ambient = BT_MESH_SENSOR_SRV_INIT(sensors,ARRAY_SIZE(sensors));//initialises array of sensors
 //define published message for health server as 0, no health messages being published only led state being changed
 BT_MESH_HEALTH_PUB_DEFINE(health_pub, 0);
 
@@ -113,7 +137,7 @@ void generic_onoff_status(bool publish, uint8_t on_or_off)
 	struct bt_mesh_model *model = &models[3];
 	if (publish && model->pub->addr == BT_MESH_ADDR_UNASSIGNED) 
 		{
-			printk("No publish address associated with the generic on off server model -add one with a configuration app like nRF Mesh\n");
+			// printk("No publish address associated with the generic on off server model -add one with a configuration app like nRF Mesh\n");
 			return;
 		}
 	if (publish) 
@@ -299,7 +323,7 @@ static struct bt_mesh_model models[] =
 {
 	BT_MESH_MODEL_CFG_SRV,//config server
 	BT_MESH_MODEL_HEALTH_SRV(&health_srv,&health_pub),//health server
-	BT_MESH_MODEL_SENSOR_SRV(&ambient_temperature),//sensor server
+	BT_MESH_MODEL_SENSOR_SRV(&ambient),//sensor server
 	// BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_CLI, onoff_client_op, &onoff_client_publish, 0),
 	BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_SRV, generic_onoff_op,&generic_onoff_pub, NULL),//onoff server (led)
 	BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_CLI, generic_onoff_cli_op, &gen_onoff_cli,&onoff[0]),//onoff client (switch)

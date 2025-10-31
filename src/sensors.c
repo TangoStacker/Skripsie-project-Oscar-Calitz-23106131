@@ -162,7 +162,7 @@ void hs3003_process_data(const uint8_t *raw_data, double *humidity, double *temp
     hum_word = (uint16_t)((raw_data[0] & 0x3F) << 8 | raw_data[1]);
     x = hum_word/16383.0*100.0;
     // printk("x hum is %f",x);
-    *humidity = x; // Now holds the pure 14-bit value (0 to 16383)
+    *humidity = x; // Now holds %
 
     // 2. Combine Temperature Bytes (raw_data[2] and raw_data[3])
     // The two LSBs of raw_data[3] are undetermined and must be masked (0xFC).

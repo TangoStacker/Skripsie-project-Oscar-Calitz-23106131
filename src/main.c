@@ -23,7 +23,7 @@ i2c hs3003 measurement resolution        --no
 #define TIMER_MS 1000
 #define PI 3.14159265359
 #define WINDOW_SIZE 40
-#define ALERT_COUNTER_TRIGGER_S 10
+#define ALERT_COUNTER_TRIGGER_S 10 //used to determine for how many seconds the wearer can be in an awkward position
 
 static struct k_timer gyr_timer;
 static struct k_timer danger_timer;
@@ -49,10 +49,12 @@ uint8_t x= 0;
 double roll_smooth = 0;
 double pitch_smooth = 0;
 double yaw_smooth = 0;
-volatile uint8_t doom_count = 0;
+volatile uint16_t doom_count = 0;
 void timer_cb(struct k_timer *timer);
 double getfloat(double *num);
 volatile uint8_t doom_flag = 0;
+double avg = 0;
+double calculate_average(double num1, double num2, double num3);
 // #include "HealthConfig.h"
 int main(void)
 {       
@@ -191,14 +193,16 @@ int main(void)
                 }
                 if (doom_flag == 1)
                 {       
-                        if(fabs(roll_smooth) > PI/2)
+                        avg = calculate_average(acc[0],acc[1],acc[2]);
+                        // printk("average %f",avg);
+                        if(fabs(roll_smooth) > PI/2 || avg < 0.4 )
                         {
                         printk("doom count %d\n",doom_count);
                                 if(doom_count == ALERT_COUNTER_TRIGGER_S)
                                 {
                                         genericOnOffSetUnAck(onoff[1]);
                                 }
-                        doom_count++;
+                        doom_count = (doom_count +1)%(ALERT_COUNTER_TRIGGER_S+1);
                         }
                         else if (fabs(roll_smooth) <= PI/2)
                         {
@@ -224,4 +228,11 @@ void timer_cb(struct k_timer *timer)
                 doom_flag = 1;     
         }
         
+}
+double calculate_average(double num1, double num2, double num3) 
+{
+    double sum = fabs(num1) + fabs(num2) + fabs(num3);
+    double average = sum / 3.0;
+    
+    return average;
 }

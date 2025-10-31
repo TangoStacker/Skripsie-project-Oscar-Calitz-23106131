@@ -19,8 +19,8 @@ extern const struct i2c_dt_spec dev_i2c_bmi270;
 extern const struct i2c_dt_spec dev_i2c_bmm150;
 extern const struct device *const dev_bmm150;
 //global variables containing humidity and temperature readings
-extern double hs3003_humidity;
-extern double hs3003_temperature;
+extern double hs3003_humidity; //%
+extern double hs3003_temperature; //degrees C
 extern double acc[3];//xyz
 extern double gyr[3];//xyz
 extern double mag[3];//xyz
