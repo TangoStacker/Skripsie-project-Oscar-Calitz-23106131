@@ -137,10 +137,12 @@ void serial_cb(const struct device *dev, void *user_data)
                 memset(rx_buf,0,MSG_SIZE);
                 return;
             }
+            //panic button
             else if(strstr(rx_buf,"danger"))
             {
                 genericOnOffSetUnAck(onoff[1]);
             }
+            //reset danger level to 0
             else if(strstr(rx_buf,"safe"))
             {
                 genericOnOffSetUnAck(onoff[0]);

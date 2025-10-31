@@ -234,7 +234,7 @@ int genericOnOffGet()
 	//check if pub address set
 	if (model->pub->addr == BT_MESH_ADDR_UNASSIGNED) 
 		{
-			printk("No publish address associated with the generic on off client model - add onewith a configuration app like nRF Mesh\n");
+			// printk("No publish address associated with the generic on off client model - add onewith a configuration app like nRF Mesh\n");
 			return -1;
 		}
 	struct net_buf_simple *msg = model->pub->msg;
