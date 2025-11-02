@@ -219,8 +219,7 @@ static void set_onoff_state(struct bt_mesh_model *model, struct bt_mesh_msg_ctx 
 }
 BT_MESH_MODEL_PUB_DEFINE(generic_onoff_pub, NULL, 2 + 1);
 
-static void generic_onoff_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx,struct net_buf_simple *buf)health_pub
-
+static void generic_onoff_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx,struct net_buf_simple *buf)
 {
 	// printk("gen_onoff_get\n");
 	reply_addr = ctx->addr;
