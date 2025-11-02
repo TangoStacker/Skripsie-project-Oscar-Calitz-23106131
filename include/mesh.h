@@ -12,6 +12,7 @@
 #include <zephyr/settings/settings.h>
 #include <zephyr/bluetooth/mesh/proxy.h>
 #include <zephyr/bluetooth/mesh/access.h>
+#include <bluetooth/mesh/sensor_types.h>
 
 
 //op codes for on/off client (from bluetooth assigned numbers)

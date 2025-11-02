@@ -23,6 +23,7 @@ i2c hs3003 measurement resolution        --no
 #define TIMER_MS 1000
 #define PI 3.14159265359
 #define WINDOW_SIZE 40
+#define alpha 0.4
 #define ALERT_COUNTER_TRIGGER_S 10 //used to determine for how many seconds the wearer can be in an awkward position
 
 static struct k_timer gyr_timer;
@@ -41,7 +42,6 @@ double roll = 0;
 double pitch = 0;
 double yaw = 0;
 double time_elapsed = 0;
-double alpha = 0.4;
 double roll_window[WINDOW_SIZE] = {0};
 double pitch_window[WINDOW_SIZE] = {0};
 double yaw_window[WINDOW_SIZE] = {0};
@@ -129,9 +129,9 @@ int main(void)
                         gyr_roll_prev = roll;
                         gyr_pitch_prev = pitch;
                         gyr_yaw_prev = yaw;
-                        roll_window[i] = roll;
-                        pitch_window[i] = pitch;
-                        yaw_window[i] = yaw;
+                        roll_window[i] = fabs(roll);
+                        pitch_window[i] = fabs(pitch);
+                        yaw_window[i] = fabs(yaw);
                         // printk("%f %f %f\n",roll,pitch,yaw);
                 }
         while (1) 
@@ -142,7 +142,7 @@ int main(void)
                 //============================================================================
                 //complementary filter
                 //====================
-                hs3003_measurement();
+                // hs3003_measurement();
                 bmi270_measurement();
                 //time elapsed since last measurement
                 time_elapsed = (TIMER_MS - k_timer_remaining_get(&gyr_timer))/1000.0;
@@ -167,9 +167,9 @@ int main(void)
                 //============================================================================
                 //Window filter
                 //====================
-                roll_window[x] = roll;
-                pitch_window[x] = pitch;
-                yaw_window[x] = yaw;
+                roll_window[x] = fabs(roll);
+                pitch_window[x] = fabs(pitch);
+                yaw_window[x] = fabs(yaw);
                 double roll_smooth = 0;
                 double pitch_smooth = 0;
                 double yaw_smooth = 0;
@@ -185,7 +185,8 @@ int main(void)
                 x++;
                 //up vector dot product with 
                 // bmm150_measurement();
-                // printk("%f %f %f\n",roll_smooth,pitch_smooth,yaw_smooth);
+                //matlab output
+                printk("%f %f %f %f %f %f %f %f %f %f %f %f\n",roll,pitch,yaw,roll_smooth,pitch_smooth,yaw_smooth,acc[0],acc[1],acc[2],gyr[0],gyr[1],gyr[2]);
                 if(send_flag == 1){
                         printk("sending AT command: %s\n",result);
                         uart_send(uart0_device, result);
@@ -195,9 +196,9 @@ int main(void)
                 {       
                         avg = calculate_average(acc[0],acc[1],acc[2]);
                         // printk("average %f",avg);
-                        if(fabs(roll_smooth) > PI/2 || avg < 0.4 )
+                        if(roll_smooth > PI/2  )//|| avg < 0.4
                         {
-                        printk("doom count %d\n",doom_count);
+                        // printk("doom count %d\n",doom_count);
                                 if(doom_count == ALERT_COUNTER_TRIGGER_S)
                                 {
                                         genericOnOffSetUnAck(onoff[1]);
